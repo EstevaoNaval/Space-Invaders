@@ -54,19 +54,22 @@ def set_invander(path_invader, row, column):
     
     return invader
 
-def move_invader(matrix_invaders, num_row_invader, num_column_invader, janela, invader_direction_x):
-    if(matrix_invaders[0][0].x <= 0 or matrix_invaders[0][-1].x + matrix_invaders[0][-1].width >= janela.width):
-        invader_direction_x *= -1
-        for row in range(num_row_invader):
-            for column in range(num_column_invader):
-                matrix_invaders[row][column].move_y(INVADER_SPEED * GAME_SPEED * janela.delta_time())
-    
+def move_invader(matrix_invaders, num_row_invader, num_column_invader, janela, tempoDescida, invader_direction):
+
+    if tempoDescida > 0.15:
+        if(matrix_invaders[0][0].x <= 0 or matrix_invaders[0][-1].x + matrix_invaders[0][-1].width >= janela.width):
+            invader_direction[0] *= -1
+            for row in range(num_row_invader):
+                for column in range(num_column_invader):
+                    matrix_invaders[row][column].move_y(INVADER_SPEED * GAME_SPEED * janela.delta_time())
+            tempoDescida = 0
+    else: tempoDescida += janela.delta_time()
 
     for row in range(num_row_invader):
         for column in range(num_column_invader):
-            matrix_invaders[row][column].move_x(INVADER_SPEED * janela.delta_time() * GAME_SPEED * invader_direction_x)
+            matrix_invaders[row][column].move_x(INVADER_SPEED * janela.delta_time() * GAME_SPEED * invader_direction[0])
 
-    return invader_direction_x
+    return tempoDescida
 
 def set_matrix_invader(path_invader, num_row_invader, num_column_invader):
     matrix_invaders = []
@@ -111,10 +114,12 @@ bullets = []
 
 path_invader = "./assets/invader/invader_01.png"
 matrix_invaders = set_matrix_invader(path_invader, NUM_ROW_INVADER, NUM_COLUMN_INVADER)
+invader_direction_x = [1]
 
 enemy_shoot_delay = 1/GAME_SPEED 
 shoot_delay = 1/GAME_SPEED * 0.5
 shoot_tick = shoot_delay
+tempoDescida = 0
 
 running = 1
 
@@ -135,7 +140,7 @@ while running:
             # Chama a função shoot(), para que ela efetue do disparo
             shoot_tick = shoot(nave, path_bullet)
     
-    direcao_nave = move_invader(matrix_invaders, NUM_ROW_INVADER, NUM_COLUMN_INVADER, janela, direcao_nave)
+    tempoDescida = move_invader(matrix_invaders, NUM_ROW_INVADER, NUM_COLUMN_INVADER, janela, tempoDescida, invader_direction_x)
     move_bullets(bullets, janela)
 
     draw(nave, matrix_invaders, NUM_ROW_INVADER, NUM_COLUMN_INVADER, bullets)
