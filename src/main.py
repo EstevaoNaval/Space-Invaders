@@ -20,7 +20,7 @@ def draw(nave, matrix_invader, num_row_invader, num_column_invader, bullets):
     for bullet in bullets:
         bullet.draw()
 
-def draw_fps(fps, list_position, size, color, font_name):
+def draw_fps(fps, list_position, size, color, font_name, janela):
     int_fps_2_string = str(int(fps))
     janela.draw_text("FPS: " + int_fps_2_string, list_position[0], list_position[1], size, color, font_name)
 
@@ -49,16 +49,31 @@ def set_nave(path_nave):
 
 def set_invander(path_invader, row, column):
     invader = Sprite(path_invader, 1)
-    x, y = row * invader.width, column * invader.height
+    x, y = (column * invader.width) + 270, row * invader.height
     invader.set_position(x, y)
     
     return invader
 
-def set_matrix_invader(path_invader):
-    matrix_invaders = [[0] * NUM_COLUMN_INVADER] * NUM_ROW_INVADER
+def move_invader(matrix_invaders, num_row_invader, num_column_invader, janela, invader_direction_x):
+    if(matrix_invaders[0][0].x <= 0 or matrix_invaders[0][-1].x + matrix_invaders[0][-1].width >= janela.width):
+        invader_direction_x *= -1
+        for row in range(num_row_invader):
+            for column in range(num_column_invader):
+                matrix_invaders[row][column].move_y(INVADER_SPEED * GAME_SPEED * janela.delta_time())
+    
 
-    for row in range(NUM_ROW_INVADER):
-        for  column in range(NUM_COLUMN_INVADER):
+    for row in range(num_row_invader):
+        for column in range(num_column_invader):
+            matrix_invaders[row][column].move_x(INVADER_SPEED * janela.delta_time() * GAME_SPEED * invader_direction_x)
+
+    return invader_direction_x
+
+def set_matrix_invader(path_invader, num_row_invader, num_column_invader):
+    matrix_invaders = []
+    for i in range(num_row_invader): matrix_invaders.append([0] * num_column_invader)
+
+    for row in range(num_row_invader):
+        for column in range(num_column_invader):
             matrix_invaders[row][column] = set_invander(path_invader, row, column)
     
     return matrix_invaders
@@ -89,12 +104,13 @@ fundo = GameImage(path_bg)
 key = Keyboard()
 
 nave = set_nave("./assets/nave/nave.png")
+direcao_nave = 1
 
 path_bullet = "./assets/bullet/pixel_laser_black.png"
 bullets = []
 
 path_invader = "./assets/invader/invader_01.png"
-matrix_invaders = set_matrix_invader(path_invader)
+matrix_invaders = set_matrix_invader(path_invader, NUM_ROW_INVADER, NUM_COLUMN_INVADER)
 
 enemy_shoot_delay = 1/GAME_SPEED 
 shoot_delay = 1/GAME_SPEED * 0.5
@@ -119,10 +135,11 @@ while running:
             # Chama a função shoot(), para que ela efetue do disparo
             shoot_tick = shoot(nave, path_bullet)
     
+    direcao_nave = move_invader(matrix_invaders, NUM_ROW_INVADER, NUM_COLUMN_INVADER, janela, direcao_nave)
     move_bullets(bullets, janela)
 
     draw(nave, matrix_invaders, NUM_ROW_INVADER, NUM_COLUMN_INVADER, bullets)
-    draw_fps(clock.get_fps(), [0,0], 20, BLACK, FONT_NAME)
+    draw_fps(clock.get_fps(), [0,0], 20, BLACK, FONT_NAME, janela)
     
     
 
