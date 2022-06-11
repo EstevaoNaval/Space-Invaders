@@ -21,10 +21,8 @@ def draw(nave, matrix_invader, bullets):
     for bullet in bullets:
         bullet.draw()
 
-def draw_fps(fps, list_position, size, color, font_name, janela):
-    int_fps_2_string = str(int(fps))
-    janela.draw_text("FPS: " + int_fps_2_string, list_position[0], list_position[1], size, color, font_name)
-
+def draw_text(text, list_position, size, color, font_name, janela):
+    janela.draw_text(text, list_position[0], list_position[1], size, color, font_name)
 
 def move_bullets(bullets, janela):
     nave_bullet_direction = -1
@@ -53,7 +51,7 @@ def set_nave(path_nave):
 
 def set_invander(path_invader, row, column):
     invader = Sprite(path_invader, 1)
-    x, y = (column * invader.width) + 270, row * invader.height
+    x, y = (column * invader.width) + 270, row * invader.height + 100
     invader.set_position(x, y)
     
     return invader
@@ -99,7 +97,7 @@ def handle_nave_collision(nave):
     if nave.x < 0: nave.x = 0
     elif nave.x + nave.width > WIDTH: nave.x = WIDTH - nave.width
 
-def handle_bullet_collision(bullets, invaders):
+def handle_bullet_collision(bullets, invaders, pontuacao):
     for index_bullet in range(len(bullets)):
         if (bullets[index_bullet].y <= invaders[-1][0].y + invaders[-1][0].height) and (bullets[index_bullet].y >= invaders[0][0].y):
             for index_bullet in range(0, len(bullets)):
@@ -111,12 +109,16 @@ def handle_bullet_collision(bullets, invaders):
 
                             if not invaders[row]: del invaders[row]
 
-                            return bullets, invaders
+                            pontuacao += 10
+
+                            return bullets, invaders, pontuacao
     
-    return bullets, invaders
+    return bullets, invaders, pontuacao
 
 janela = Window(WIDTH, HEIGHT)
 janela.set_title(TITLE)
+
+pontuacao = 0
 
 clock = time.Clock()
 
@@ -164,9 +166,10 @@ while running:
     tempoDescida = move_invader(matrix_invaders, janela, tempoDescida, invader_direction_x)
     bullets = move_bullets(bullets, janela)
 
-    bullets, matrix_invaders = handle_bullet_collision(bullets, matrix_invaders)
+    bullets, matrix_invaders, pontuacao = handle_bullet_collision(bullets, matrix_invaders, pontuacao)
 
     draw(nave, matrix_invaders, bullets)
-    draw_fps(clock.get_fps(), [0,0], 20, BLACK, FONT_NAME, janela)
+    draw_text("FPS: {}".format(int(clock.get_fps())), [0,0], 20, BLACK, FONT_NAME, janela)
+    draw_text("Pontuação: {}".format(pontuacao), [janela.width/2 - 85,0], 35, BLACK, FONT_NAME, janela)
     
     janela.update()
