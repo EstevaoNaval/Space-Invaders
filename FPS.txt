@@ -1,0 +1,3 @@
+Menor FPS sem nenhuma otimização: 70
+Menor FPS com otimização de iteração dos invaders pela linha mais próxima do player: 95
+Menor FPS com otimização anterior mais as verificações na área dos invaders: 110
