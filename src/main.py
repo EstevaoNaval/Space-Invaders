@@ -1,3 +1,4 @@
+from random import randint
 from PPlay.gameimage import *
 from PPlay.window import *
 from PPlay.gameobject import *
@@ -175,6 +176,7 @@ while running:
     fundo.draw()
 
     shoot_tick += janela.delta_time()
+    
 
     update_life(lifes, nave, path_nave, invader_bullets)
     handle_nave_collision(nave)
@@ -185,6 +187,9 @@ while running:
         if shoot_tick > shoot_delay:
             # Chama a função shoot(), para que ela efetue do disparo
             shoot_tick = shoot(nave, path_bullet, 1)
+    
+    random_index_column_invader = randint(0, len(matrix_invaders[0]) - 1)
+    
     
     tempoDescida = move_invader(matrix_invaders, janela, tempoDescida, invader_direction_x)
     nave_bullets = move_bullets(-1, nave_bullets, janela)

@@ -1,7 +1,7 @@
 from pygame import font
 
 FPS = 60
-WIDTH, HEIGHT = 1200, 1000
+WIDTH, HEIGHT = 1200, 800
 
 GAME_SPEED = 2
 GAME_STATE = 0
