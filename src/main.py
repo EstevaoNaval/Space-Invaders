@@ -1,4 +1,4 @@
-from PPlay.gameimage import GameImage
+from PPlay.gameimage import *
 from PPlay.window import *
 from PPlay.gameobject import *
 from PPlay.keyboard import *
@@ -11,7 +11,7 @@ import sys
 #    if(keycode.key_pressed["LEFT"]):
 #        nave.move_key_x(4)
 
-def draw(nave, matrix_invader, bullets):
+def draw(nave, matrix_invader, bullets, lifes):
     nave.draw()
 
     for row in range(len(matrix_invader)):
@@ -20,21 +20,35 @@ def draw(nave, matrix_invader, bullets):
 
     for bullet in bullets:
         bullet.draw()
+    
+    draw_text("Vidas: ", [janela.width - 195,0], 35, BLACK, FONT_NAME, janela)
+    for index in range(len(lifes)):
+        lifes[index].set_position(janela.width - 105 + index * (3 + 32), 0)
+        lifes[index].draw()
 
 def draw_text(text, list_position, size, color, font_name, janela):
     janela.draw_text(text, list_position[0], list_position[1], size, color, font_name)
 
-def move_bullets(bullets, janela):
-    nave_bullet_direction = -1
-    
+def move_bullets(bullet_direction, bullets, janela):
     for row in range(len(bullets)):
-        bullets[row].move_y(BULLET_SPEED * janela.delta_time() * GAME_SPEED * nave_bullet_direction)
+        bullets[row].move_y(BULLET_SPEED * janela.delta_time() * GAME_SPEED * bullet_direction)
 
         if bullets[row].y < -bullets[row].height or bullets[row].y > janela.height + bullets[row].height:
             del bullets[row]
             return bullets
 
     return bullets
+
+def set_life_position(lifes):
+    for index in range(len(lifes)):
+        lifes[index].set_position(janela.width - 105 + index * (3 + 32), 0)
+
+def update_life(lifes, nave, path_nave, bullets):
+    for bullet in bullets:
+        if bullet.collided(nave):
+            del lifes[0] 
+            set_life_position(lifes)
+            nave = set_nave(path_nave)
 
 def set_bullet_position(bullet, atirador):
     shoot_x = atirador.x + (atirador.width/2) - (bullet.width/2)
@@ -82,14 +96,17 @@ def set_matrix_invader(path_invader, num_row_invader, num_column_invader):
     
     return matrix_invaders
 
-def shoot(atirador, path_bullet):
+def shoot(atirador, path_bullet, is_nave):
     shoot_tick = 0
 
     bullet = Sprite(path_bullet)
 
     set_bullet_position(bullet, atirador)
 
-    bullets.append(bullet)
+    if is_nave: 
+        nave_bullets.append(bullet)
+    else:
+        invader_bullets.append(bullet)
 
     return shoot_tick
 
@@ -127,16 +144,21 @@ fundo = GameImage(path_bg)
 
 key = Keyboard()
 
-nave = set_nave("./assets/nave/nave.png")
+path_nave = "./assets/nave/nave.png"
+nave = set_nave(path_nave)
 direcao_nave = 1
 
+path_life = "./assets/life/heart.png"
+lifes = [Sprite(path_life, 1), Sprite(path_life, 1), Sprite(path_life, 1)]
+
 path_bullet = "./assets/bullet/pixel_laser_black.png"
-bullets = []
+nave_bullets = []
 
 path_invader = "./assets/invader/invader_01.png"
 matrix_invaders = set_matrix_invader(path_invader, NUM_ROW_INVADER, NUM_COLUMN_INVADER)
 invader_direction_x = [1]
 
+invader_bullets = []
 enemy_shoot_delay = 1/GAME_SPEED 
 shoot_delay = 1/GAME_SPEED * 0.5
 shoot_tick = shoot_delay
@@ -154,6 +176,7 @@ while running:
 
     shoot_tick += janela.delta_time()
 
+    update_life(lifes, nave, path_nave, invader_bullets)
     handle_nave_collision(nave)
 
     if(key.key_pressed("LEFT")): nave.move_x(-NAVE_SPEED * janela.delta_time())
@@ -161,14 +184,15 @@ while running:
     if(key.key_pressed("SPACE")): 
         if shoot_tick > shoot_delay:
             # Chama a função shoot(), para que ela efetue do disparo
-            shoot_tick = shoot(nave, path_bullet)
+            shoot_tick = shoot(nave, path_bullet, 1)
     
     tempoDescida = move_invader(matrix_invaders, janela, tempoDescida, invader_direction_x)
-    bullets = move_bullets(bullets, janela)
+    nave_bullets = move_bullets(-1, nave_bullets, janela)
+    invader_bullets = move_bullets(1, invader_bullets, janela)
 
-    bullets, matrix_invaders, pontuacao = handle_bullet_collision(bullets, matrix_invaders, pontuacao)
+    nave_bullets, matrix_invaders, pontuacao = handle_bullet_collision(nave_bullets, matrix_invaders, pontuacao)
 
-    draw(nave, matrix_invaders, bullets)
+    draw(nave, matrix_invaders, nave_bullets, lifes)
     draw_text("FPS: {}".format(int(clock.get_fps())), [0,0], 20, BLACK, FONT_NAME, janela)
     draw_text("Pontuação: {}".format(pontuacao), [janela.width/2 - 85,0], 35, BLACK, FONT_NAME, janela)
     
